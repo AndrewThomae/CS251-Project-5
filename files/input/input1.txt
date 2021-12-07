@@ -1,0 +1,7 @@
+seg
+sea
+segmentationfault
+segment
+segmental
+segmentation
+segv

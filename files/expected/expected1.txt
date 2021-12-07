@@ -1,0 +1,5 @@
+segment 3
+segv 3
+segmental 5
+segmentation 5
+segmentationfault 6

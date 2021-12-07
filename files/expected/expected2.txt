@@ -1,0 +1,14 @@
+be 2
+brake 2
+by 2
+baby 3
+bag 3
+base 3
+because 3
+bee 3
+bell 3
+bent 3
+bomb 3
+box 3
+bellman 4
+belltower 4
