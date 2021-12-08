@@ -1,7 +1,6 @@
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
-import java.io.IOException;
 import java.util.LinkedList;
 import java.util.Scanner;
 
@@ -50,6 +49,9 @@ public class Trie {
     }
 
     private void insert(String word, TrieNode node) {
+        if (word.equals("")) {
+            return;
+        }
         char start = (char) (word.charAt(0) - 'a');
         if (node.edgeLabel[start] == null) {
             //New Word, New Node
@@ -58,7 +60,7 @@ public class Trie {
             node.children[start].ender = true;
         } else if (node.edgeLabel[start].equals(word)){
             //Word is the exact same as this edge
-            node.ender = true;
+            node.children[start].ender = true;
         } else if (word.length() > node.edgeLabel[start].length() && word.substring(0, node.edgeLabel[start].length()).equals(node.edgeLabel[start])) {
             //Word has a suffix of node
             //Recursively call insert, with the non-matching portion of word
@@ -103,6 +105,10 @@ public class Trie {
             node.children[start].children[(char) tempS.charAt(0) - 'a'] = temp;
             node.children[start].children[(char) shortW.charAt(0) - 'a'] = new TrieNode();
             node.children[start].children[(char) shortW.charAt(0) - 'a'].ender = true;
+
+            //Bug Fixing, idk where it is a problem
+            node.children[start].ender = false;
+            node.children[start].children[(char) tempS.charAt(0) - 'a'].ender = true;
         }
     }
 
@@ -117,11 +123,14 @@ public class Trie {
     public void autocomplete (String outputfile) throws Exception{
         LinkedList<TrieNode> q = new LinkedList<>();
         LinkedList<String> sQ = new LinkedList<>();
+        LinkedList<Integer> iQ = new LinkedList<>();
         TrieNode temp = root;
         String tempS = arg;
+        int depth = 0;
 
         //Find node of best copy
         while (true) {
+            depth++;
             int start = tempS.charAt(0) - 'a';
             if(temp.children[start] == null) {
                 break;
@@ -138,6 +147,7 @@ public class Trie {
                 }
             } else if (temp.edgeLabel[start].equals(tempS)) {
                 temp = temp.children[start];
+                depth++;
                 break;
             } else {
                 break;
@@ -152,16 +162,19 @@ public class Trie {
 
             q.add(temp);
             sQ.add(arg);
+            iQ.add(depth);
             while (!q.isEmpty()) {
                 temp = q.remove();
                 tempS = sQ.remove();
+                depth = iQ.remove();
 
                 for (int i = 0; i < 26; i++) {
                     if (temp.children[i] != null) {
                         q.add(temp.children[i]);
                         sQ.add(tempS + temp.edgeLabel[i]);
+                        iQ.add(depth + 1);
                         if (temp.children[i].ender) {
-                            System.out.println(tempS + temp.edgeLabel[i]);
+                            writer.write(tempS + temp.edgeLabel[i] + " " + depth + "\n");
                         }
                     }
                 }
