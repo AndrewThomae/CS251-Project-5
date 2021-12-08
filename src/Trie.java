@@ -1,6 +1,7 @@
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.util.ArrayList;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.LinkedList;
 import java.util.Scanner;
 
@@ -17,7 +18,7 @@ public class Trie {
      * @throws Exception
      */
     public void buildTrie (String inputfile) throws Exception {
-        ArrayList<String> twords = new ArrayList<>();
+        LinkedList<String> twords = new LinkedList<>();
         //Read the file for argument and trie words
         try {
             File file = new File(inputfile);
@@ -69,10 +70,10 @@ public class Trie {
 
             node.children[start] = new TrieNode();
             node.edgeLabel[start] = word;
+            node.children[start].ender = true;
 
             tempS = tempS.substring(word.length(), tempS.length());
-            temp.edgeLabel[(char) tempS.charAt(0) - 'a'] = tempS;
-
+            node.children[start].edgeLabel[(char) tempS.charAt(0) - 'a'] = tempS;
             node.children[start].children[(char) tempS.charAt(0) - 'a'] = temp;
         } else {
             //Partial Match
@@ -114,27 +115,60 @@ public class Trie {
      * @throws Exception
      */
     public void autocomplete (String outputfile) throws Exception{
-        ArrayList<String> oStrings = new ArrayList<>();
-        ArrayList<Integer> oWeights = new ArrayList<>();
+        LinkedList<TrieNode> q = new LinkedList<>();
+        LinkedList<String> sQ = new LinkedList<>();
         TrieNode temp = root;
+        String tempS = arg;
 
-        while (arg != "") {
-            if (temp.children[(char) arg.charAt(0) - 'a'] != null) {
-                for (int i = 0; i <= temp.edgeLabel[(char) arg.charAt(0) - 'a'].length(); i++) {
-
+        //Find node of best copy
+        while (true) {
+            int start = tempS.charAt(0) - 'a';
+            if(temp.children[start] == null) {
+                break;
+            } else if (temp.edgeLabel[start].length() < tempS.length()) {
+                //If arg is longer than the edge it should be at, check if it fits
+                if (temp.edgeLabel[start].equals(tempS.substring(0,temp.edgeLabel[start].length()))) {
+                    //If yes, dive deeper
+                    tempS = tempS.substring(temp.edgeLabel[start].length());
+                    temp = temp.children[start];
+                    continue;
+                } else {
+                    //If it doesn't, break it off
+                    break;
                 }
-
+            } else if (temp.edgeLabel[start].equals(tempS)) {
+                temp = temp.children[start];
+                break;
             } else {
                 break;
             }
         }
 
-        printList(temp, oStrings, oWeights);
 
+        //Print to output
+        try {
+            File out = new File(outputfile);
+            FileWriter writer = new FileWriter(out);
 
-    }
+            q.add(temp);
+            sQ.add(arg);
+            while (!q.isEmpty()) {
+                temp = q.remove();
+                tempS = sQ.remove();
 
-    private void printList(TrieNode root, ArrayList<String> oStrings, ArrayList<Integer> oWeights) {
-
+                for (int i = 0; i < 26; i++) {
+                    if (temp.children[i] != null) {
+                        q.add(temp.children[i]);
+                        sQ.add(tempS + temp.edgeLabel[i]);
+                        if (temp.children[i].ender) {
+                            System.out.println(tempS + temp.edgeLabel[i]);
+                        }
+                    }
+                }
+            }
+            writer.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }
